@@ -25,7 +25,7 @@ namespace grid
 
 			return *this;
 		}
-		//Поиск глобального номера б.ф. в элементе
+		//Поиск глобального номера nodesNumber в элементе
 		bool SearchNode(int nodesNumber);
 	};
 
@@ -62,7 +62,7 @@ namespace grid
 		//Массив узлов с первыми краевыми условиями
 		vector <int> ku;
 		//Формирование списка элементов, содержащих глобальный номер б.ф.
-		//равный dofsNumber
+		//равный nodesNumber
 		void SearchElements(int nodesNumber, vector<int>& elList);
 
 		~Grid();

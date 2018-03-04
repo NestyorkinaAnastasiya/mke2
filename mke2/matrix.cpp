@@ -3,7 +3,7 @@
 
 namespace matrix
 {
-	//Генерация портрета матрицы
+	// Генерация портрета матрицы
 	void Matrix::CreatePortret(int slaeSize, Grid grid)
 	{
 		vector <int> elList, unzeroNumbersList;
@@ -13,9 +13,9 @@ namespace matrix
 
 		for (int i = 0; i < slaeSize; i++)
 		{
-			//нашли,в каких элементах присутствует данная i-я степень свободы
+			// Нашли,в каких элементах присутствует данный i-ый узел
 			grid.SearchElements(i, elList);
-			//собрать список узлов этих элементов, меньших по номеру
+			// Собрать список узлов этих элементов, меньших по номеру
 			for (unsigned int j = 0; j < elList.size(); j++)
 			{
 				for (int k = 0; k < 4; k++)
@@ -42,7 +42,13 @@ namespace matrix
 		}
 
 		//инициализируем матрицу и собираем портрет
-		Initialize(slaeSize, gg_size);
+		n = slaeSize; size = gg_size;
+
+		ggl.resize(size);
+		ggu.resize(size);
+		di.resize(n);
+		ig.resize(n + 1);
+		jg.resize(size);
 
 		ig[0] = 0;
 
@@ -71,35 +77,23 @@ namespace matrix
 		list.clear();
 	}
 
-	//Инициализация матрицы после генерации портрета
-	void Matrix::Initialize(int size1, int size2)
-	{
-		n = size1; size = size2;
-
-		ggl.resize(size);
-		ggu.resize(size);
-		di.resize(n);
-		ig.resize(n + 1);
-		jg.resize(size);
-	}
-
-	//Умножение матрицы на вектор
+	// Умножение матрицы на вектор
 	void Matrix::MultiplyAx(const vector <double> a, vector <double> &result)
 	{
 		int i, j, l, ik, iend, k;
 
 		for (i = 0; i < n; i++)
 		{
-			//начало i-ой строки(столбца)
+			// начало i-ой строки(столбца)
 			l = ig[i];
-			//начало (i+1)-ой строки(столбца)
+			// начало (i+1)-ой строки(столбца)
 			iend = ig[i + 1];
-			//количество элементов в i строке(столбце)
+			// количество элементов в i строке(столбце)
 			ik = iend - l;
 
 			result[i] = di[i] * a[i];
 
-			//проходим по всем элементам i строки (столбца)
+			// проходим по всем элементам i строки (столбца)
 			for (k = 0; k < ik; k++, l++)
 			{
 				j = jg[l];
@@ -108,31 +102,5 @@ namespace matrix
 			}
 		}
 	}
-
-	//Умножение транспонированной матрицы на вектор
-	void Matrix::MultiplyATx(vector <double> a, vector <double> &result)
-	{
-		int i, j, l, ik, iend, k;
-		for (i = 0; i < n; i++)
-		{
-			//начало i-ой строки(столбца)
-			l = ig[i];
-			//начало (i+1)-ой строки(столбца)
-			iend = ig[i + 1];
-			//количество элементов в i строке(столбце)
-			ik = iend - l;
-
-			result[i] = di[i] * a[i];
-
-			//проходим по всем элементам i строки (столбца)
-			for (k = 0; k < ik; k++, l++)
-			{
-				j = jg[l];
-				result[i] += ggu[l] * a[j];
-				result[j] += ggl[l] * a[i];
-			}
-		}
-	}
-
 }
 

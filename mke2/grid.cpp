@@ -3,7 +3,7 @@
 
 namespace grid
 {
-	//Поиск глобального номера б.ф. в элементе
+	// Поиск глобального номера б.ф. в элементе
 	bool Element::SearchNode(int nodesNumber)
 	{
 		for (int i = 0; i < 4; i++)
@@ -12,25 +12,28 @@ namespace grid
 		return false;
 	}
 
-	//Описание содержимого файлов
+	// Описание содержимого файлов
 	/*
 	# inf2tr.dat (текстовый файл):
 		kuzlov - число узлов сетки
 		ktr    - число конечных элементов (прямоугольников)
 		kt1    - число узлов с первыми краевыми условиями
+	# rz.dat (двоичный файл):
+		структура i-й записи (i=1..kuzlov):
+			2*double (x,y),	где x,y - (x,y)-координаты i-й вершины
 	# nvtr.dat (двоичный файл):
 		структура i-й записи (i=1..ktr): 
 			6*long (i1,i2,i3,i4,0,1), где i1,i2,i3,i4 - глобальные номера 
 			вершин i-го прямоугольника (левый верхний, правый верхний,
 			левый нижний, правый нижний)
-	# rz.dat (двоичный файл):
-		структура i-й записи (i=1..kuzlov):
-			2*double (x,y),
-				где x,y - (x,y)-координаты i-й вершины
+	# nvkat2d.dat (двоичный файл):
+		структура i-й записи (i=1..ktr):
+			1*long (m), где m - номер материала i-го прямоугольника в 
+			соответствии с файлами sreda и mu
 	# l1.dat (двоичный файл):
 		структура i-й записи (i=1..kt1):
-			1*long (k), где k - глобальный номер i-й вершины с первым 
-						нулевыми краевым условием
+			1*long (k), где k - глобальный номер i-й вершины с первым
+			нулевыми краевым условием
 	*/
 	
 	// Заполнение сетки
@@ -67,10 +70,10 @@ namespace grid
 		fseek(fp, 8, SEEK_CUR);
 		fscanf(fp, "%d", &countOfElements);
 		fclose(fp);
+
 		nodes.resize(countOfNodes);
 		elements.resize(countOfElements);
 
-		fp = fopen("nvkat2d.dat", "rb");
 		for (int i = 0; i < countOfNodes; i++)
 		{
 			double xy[2];
@@ -79,14 +82,16 @@ namespace grid
 			nodes[i].y = xy[1];
 		}
 
+		fp = fopen("nvkat2d.dat", "rb");
 		for (int i = 0; i < countOfElements; i++)
 		{
 			int nodes[6], material;
 			fread(nodes, sizeof(int), 6, fElements);
 			fread(&material, sizeof(int), 1, fp);
 
+			// Нумерация в файле начинается с 1
 			for (int j = 0; j < 4; j++)
-				elements[i].nodes[j] = nodes[j] - 1; //?????
+				elements[i].nodes[j] = nodes[j] - 1;
 
 			sort(elements[i].nodes, elements[i].nodes + 4);
 			elements[i].numberOfMaterial = material;
@@ -102,8 +107,8 @@ namespace grid
 
 	Grid::~Grid() {}
 	
-	//Формирование списка элементов, содержащих глобальный номер б.ф.
-	//равный dofsNumber
+	// Формирование списка элементов, содержащих глобальный номер б.ф.
+	// равный nodesNumber
 	void Grid::SearchElements(int nodesNumber, vector <int> &elList)
 	{
 		int count;

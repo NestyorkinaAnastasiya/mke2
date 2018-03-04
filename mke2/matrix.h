@@ -26,13 +26,7 @@ namespace matrix
 
 		//Генерация портрета матрицы
 		void CreatePortret(int slaeSize, Grid grid);
-		//Инициализация матрицы после генерации портрета
-		void Initialize(int size1, int size2);
 		//Умножение матрицы на вектор
 		void MultiplyAx(const vector <double> a, vector<double>& result);
-		//Умножение транспонированной матрицы на вектор
-		void MultiplyATx(vector<double> a, vector<double>& result);
-
-
 	};
 }
