@@ -1,6 +1,7 @@
 /*slae.h*/
 #pragma once
 #include "tests.h"
+#include <math.h>
 using namespace matrix;
 using namespace basis;
 using namespace integration;

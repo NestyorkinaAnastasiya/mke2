@@ -35,7 +35,8 @@ namespace slae
 		}
 		fclose(fp);
 
-		// Вычисление производных мю
+		// Вычисление значений производных полиномов Лагранжа в точках 
+		// (tableDetMu)
 		CalculateDerivatives();
 
 	}
