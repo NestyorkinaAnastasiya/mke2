@@ -107,7 +107,7 @@ namespace grid
 
 	Grid::~Grid() {}
 	
-	// Формирование списка элементов, содержащих глобальный номер б.ф.
+	// Формирование списка номеров элементов, содержащих глобальный номер б.ф.
 	// равный nodesNumber
 	void Grid::SearchElements(int nodesNumber, vector <int> &elList)
 	{

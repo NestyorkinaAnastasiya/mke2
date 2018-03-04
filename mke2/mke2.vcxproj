@@ -132,13 +132,19 @@
     <ClCompile Include="tests.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Area.txt" />
-    <Text Include="Areas.txt" />
-    <Text Include="AreasLines.txt" />
-    <Text Include="Intervals.txt" />
     <Text Include="number_of_test.txt" />
-    <Text Include="result.txt" />
-    <Text Include="time.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="inf2tr.dat" />
+    <None Include="l1.dat" />
+    <None Include="mu.001" />
+    <None Include="nvk1.dat" />
+    <None Include="nvk4.dat" />
+    <None Include="nvkat2d.dat" />
+    <None Include="nvr4.dat" />
+    <None Include="nvtr.dat" />
+    <None Include="rz.dat" />
+    <None Include="toku" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

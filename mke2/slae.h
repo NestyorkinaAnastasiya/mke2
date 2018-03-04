@@ -16,6 +16,12 @@ namespace slae
 		int maxiter = 10000;
 		// Точность решения СЛАУ
 		const double eps = 1e-10;
+
+		// Значение мю в вакууме(4 * пи * 10 ^ -7)
+		double mu0 = 4 * M_PI * 0.0000001;
+		vector<pair<double, double>> tableMu;
+		vector<double> tableDetMu;
+
 		// Сетка
 		Grid grid;
 		// Хранилище тестовых функций
@@ -52,6 +58,12 @@ namespace slae
 		// Сборка локальных матриц(векторов) и добавление в глобальные
 		void CalculateLocals(int elementNumber);
 
+		int detectIntervalB(double B);
+
+		double CalculateMu(double x, double y, int elementNumber);
+		void CalculateDerivatives();
+		double CalculateB(double x, double y, int elementNumber);
+		double Spline(int interval_B_number, double B);
 
 		// Вектор праввой части для первого краевого 
 		array<double, 3> g;

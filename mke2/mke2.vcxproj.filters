@@ -15,23 +15,23 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="grid.h">
-      <Filter>Исходные файлы</Filter>
-    </ClInclude>
     <ClInclude Include="basis.h">
-      <Filter>Исходные файлы</Filter>
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="grid.h">
+      <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="integration.h">
-      <Filter>Исходные файлы</Filter>
+      <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="matrix.h">
-      <Filter>Исходные файлы</Filter>
+      <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="slae.h">
-      <Filter>Исходные файлы</Filter>
+      <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="tests.h">
-      <Filter>Исходные файлы</Filter>
+      <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -58,26 +58,40 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Area.txt">
-      <Filter>Файлы ресурсов</Filter>
-    </Text>
-    <Text Include="Intervals.txt">
-      <Filter>Файлы ресурсов</Filter>
-    </Text>
-    <Text Include="AreasLines.txt">
-      <Filter>Файлы ресурсов</Filter>
-    </Text>
-    <Text Include="Areas.txt">
-      <Filter>Исходные файлы</Filter>
-    </Text>
     <Text Include="number_of_test.txt">
-      <Filter>Исходные файлы</Filter>
+      <Filter>Файлы ресурсов</Filter>
     </Text>
-    <Text Include="result.txt">
-      <Filter>Исходные файлы</Filter>
-    </Text>
-    <Text Include="time.txt">
-      <Filter>Исходные файлы</Filter>
-    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="inf2tr.dat">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="l1.dat">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="mu.001">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="nvk1.dat">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="nvk4.dat">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="nvkat2d.dat">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="nvr4.dat">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="nvtr.dat">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="rz.dat">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="toku">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
   </ItemGroup>
 </Project>
