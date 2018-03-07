@@ -4,5 +4,5 @@
 void main()
 {
 	slae::SLAE A;
-	A.TSolve();
+	A.Solve();
 }

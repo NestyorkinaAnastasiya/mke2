@@ -31,4 +31,7 @@ namespace basis
 		dphietta[2] = [_phi_, dphi_ksi](double ksi, double etta) { return _phi_[0](ksi) * dphi_ksi[1](etta); };
 		dphietta[3] = [_phi_, dphi_ksi](double ksi, double etta) { return _phi_[1](ksi) * dphi_ksi[1](etta); };
 	}
+	Basis::~Basis()
+	{
+	}
 }

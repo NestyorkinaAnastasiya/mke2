@@ -1,6 +1,7 @@
 /*slae.h*/
 #pragma once
 #include "tests.h"
+#define _USE_MATH_DEFINES
 #include <math.h>
 using namespace matrix;
 using namespace basis;
@@ -20,6 +21,8 @@ namespace slae
 
 		// Значение мю в вакууме(4 * пи * 10 ^ -7)
 		double mu0 = 4 * M_PI * 0.0000001;
+		double Jz = 1e7;
+		bool liner = true;
 		vector<pair<double, double>> tableMu;
 		vector<double> tableDetMu;
 
@@ -50,8 +53,6 @@ namespace slae
 
 		// Сборка локальных матриц жёсткости
 		void CalculateG(int elementNumber);
-		// Сборка локальных матриц масс
-		void CalculateM(int elementNumber);
 		// Сборка локальных правых частей
 		void CalculateLocalF(int elementNumber);
 		// Добавка локального элемента в глобальный
@@ -63,8 +64,9 @@ namespace slae
 
 		double CalculateMu(double x, double y, int elementNumber);
 		void CalculateDerivatives();
-		double CalculateB(double x, double y, int elementNumber);
-		double Spline(int interval_B_number, double B);
+		double CalculateB(double x, double y, int elementNumber, double *Bx, double *By);
+		double CalculateBInPoint(double x, double y, double *Bx, double *By);
+		double SplineInterpolation(int interval_B_number, double B);
 
 		// Вектор праввой части для первого краевого 
 		array<double, 3> g;

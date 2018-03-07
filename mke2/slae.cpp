@@ -24,13 +24,14 @@ namespace slae
 		A.CreatePortret(n, grid);
 
 		// Считываем табличные значения мю
-		FILE *fp = fopen("mu.001", "r");
+		FILE *fp;
+		fopen_s(&fp, "mu.001", "r");
 		int size;
-		fscanf(fp, "%d", &size);
+		fscanf_s(fp, "%d", &size);
 		tableMu.resize(size);
 		for (int i = 0; i < size; i++)
 		{
-			fscanf(fp, "%lf %lf", &tableMu[i].second, &tableMu[i].first);
+			fscanf_s(fp, "%lf %lf", &tableMu[i].second, &tableMu[i].first);
 			tableMu[i].second *= mu0;
 		}
 		fclose(fp);
@@ -41,6 +42,7 @@ namespace slae
 
 	}
 
+#pragma region matrix
 	// Сборка локальных матриц жёсткости
 	void SLAE::CalculateG(int elementNumber)
 	{
@@ -65,7 +67,9 @@ namespace slae
 					// Номер материала соответствует железу
 					if (element.numberOfMaterial == 2)
 					{
-						lambda = 1 / CalculateMu(x_, y_, elementNumber);
+						if (!liner)
+							lambda = 1 / CalculateMu(x_, y_, elementNumber);
+						else lambda = 1 / 1000 / mu0;
 					}
 					else // В остальных случаях нет зависмости от mu
 					{
@@ -84,61 +88,34 @@ namespace slae
 			for (int j = 0; j < i; j++)
 				G[i][j] = G[j][i];
 	}
-
-	// Сборка локальных матриц масс
-	void SLAE::CalculateM(int elementNumber)
-	{
-		Element element = grid.elements[elementNumber];
-		double  g, ksi, etta, sigma, x_, y_, 
-			x1 = grid.nodes[element.nodes[0]].x, x3 = grid.nodes[element.nodes[1]].x,
-			y1 = grid.nodes[element.nodes[0]].y, y3 = grid.nodes[element.nodes[2]].y,
-			hx = x3 - x1, hy = y3 - y1,
-			jacobian = hx * hy / 4.0;
-
-		for (int i = 0; i < 4; i++)
-		{	
-			for (int j = i; j < 4; j++)
-			{	
-				g = 0;
-				for (int k = 0; k < 25; k++)
-				{
-					ksi = 0.5 + 0.5 * gaussPoints[0][k]; etta = 0.5 + 0.5 * gaussPoints[1][k];
-					x_ = x1 + ksi*hx; y_ = y1 + etta*hy;
-
-					sigma = tests.Sigma(x_, y_);
-					g +=  sigma *  gaussWeights[k] * phi[i](ksi, etta) * phi[j](ksi, etta);
-				}
-				M[i][j] = g * jacobian;
-			}
-		}
-		// матрица симметричная, заполняем нижний треугольник
-		for (int i = 1; i < 4; i++)
-			for (int j = 0; j < i; j++)
-				M[i][j] = M[j][i];
-	}
 	
 	// Сборка локальных правых частей
 	void SLAE::CalculateLocalF(int elementNumber)
 	{
 		Element element = grid.elements[elementNumber];
 		double ksi, etta, x_, y_,
-			x1 = grid.nodes[element.nodes[0]].x, x3 = grid.nodes[element.nodes[1]].x,
-			y1 = grid.nodes[element.nodes[0]].y, y3 = grid.nodes[element.nodes[2]].y,
-			hx = x3 - x1, hy = y3 - y1,
-			jacobian = hx * hy / 4.0;
+		x1 = grid.nodes[element.nodes[0]].x, x3 = grid.nodes[element.nodes[1]].x,
+		y1 = grid.nodes[element.nodes[0]].y, y3 = grid.nodes[element.nodes[2]].y,
+		hx = x3 - x1, hy = y3 - y1,
+		jacobian = hx * hy / 4.0;
+		
 		// интегрирование(Гаусс 5)
 		for (int i = 0; i < 4; i++)
 		{	
 			locF[i] = 0;
-			
+			if (element.numberOfMaterial == 3 || element.numberOfMaterial == 4)
+			{
 				for (int k = 0; k < 25; k++)
 				{
 					ksi = 0.5 + 0.5 * gaussPoints[0][k]; etta = 0.5 + 0.5 * gaussPoints[1][k];
-					x_ = x1 + ksi*hx; y_ = y1 + etta*hy;
-
-					locF[i] += tests.Fi(x_, y_) * gaussWeights[k] * phi[i](ksi, etta);
+					x_ = x1 + ksi * hx; y_ = y1 + etta * hy;
+					if (element.numberOfMaterial == 3)
+						locF[i] += Jz * gaussWeights[k] * phi[i](ksi, etta);
+					else if (element.numberOfMaterial == 4)
+						locF[i] -= Jz * gaussWeights[k] * phi[i](ksi, etta);
 				}
-			locF[i] *= jacobian;
+				locF[i] *= jacobian;
+			}
 		}
 	}
 
@@ -180,7 +157,6 @@ namespace slae
 
 		// вычисление локальных матриц
 		CalculateG(elementNumber);
-		CalculateM(elementNumber);
 		CalculateLocalF(elementNumber);
 
 		for (int i = 0; i < 4; i++)
@@ -198,35 +174,76 @@ namespace slae
 		}
 	}
 
-	//чо-то не понятное
+	// Вычисление 1ого краевого условия для одного узла
+	void SLAE::CalculateBoundaries1()
+	{
+		int id;
+		int nNodes = grid.ku.size();
+		int matrixSize = A.n;
+		int numberOfNode;
+		bool flag;
+
+		for (int i = 0; i < nNodes; i++)
+		{
+			numberOfNode = grid.ku[i];
+
+			F[numberOfNode] = 0.0;
+			A.di[numberOfNode] = 1.0;
+
+			for (int j = 0; j < matrixSize; j++)
+				if (numberOfNode < j)
+				{
+					flag = false;
+					for (id = A.ig[j]; !flag && id <= A.ig[j + 1] - 1; id++)
+						if (A.jg[id] == numberOfNode) flag = true;
+					if (flag) A.ggu[id - 1] = 0.0;
+				}
+				else
+				{
+					flag = false;
+					for (id = A.ig[numberOfNode]; !flag && id <= A.ig[numberOfNode + 1] - 1; id++)
+						if (A.jg[id] == j) flag = true;
+					if (flag) A.ggl[id - 1] = 0.0;
+				}
+		}
+	}
+#pragma endregion
+
+#pragma region B, mu
+	// Определение интервала в котором находится B
 	int SLAE::detectIntervalB(double B)
 	{
 		int i;
 		int size = tableMu.size();
 		for (i = 0; i < size; i++)
 			if (B < tableMu[i].first)
-				return i - 1; //если левее,то будет возвращаться -1
+				// если B меньше минимально возможного,то будет возвращаться -1
+				// если B будет меньше какого-либо внутреннего i-ого B из таблицы,
+				//	то будет возвращаться номер B из таблицы, который меньше рассматриваемого B
+				return i - 1; 
+		// если B больше максимально возможного, то будет возвращаться -2 
 		return -2;
 	}
 
-	//чо-то не понятное
+	// Вычисление мю в зависимости от B
 	double SLAE::CalculateMu(double x, double y, int elementNumber)
 	{
-		double B = CalculateB(x, y, elementNumber);
+		double Bx, By;
+		double B = CalculateB(x, y, elementNumber, &Bx, &By);
 		int intervalBNumber = detectIntervalB(B);
-
-		if (intervalBNumber == -1) //левее по В
+		// B меньше минимально возможного, берём минимально возможный в качестве значения
+		if (intervalBNumber == -1)
 		{
 			return tableMu[0].second;
 		}
-		else
-			if (intervalBNumber == -2)//правее по В
+		else // B больше максимально возможного
+			if (intervalBNumber == -2)
 			{
 				// Вычисление mu по формуле (2.12) из методы
 				return 1.0 / ((tableMu.end() - 1)->first / B * (1.0 / (tableMu.end() - 1)->second - 1) + 1);
 			}
-
-		return Spline(intervalBNumber, B);
+		// если B внутренняя точка - построение сплайна
+		return SplineInterpolation(intervalBNumber, B);
 	}
 
 	void SLAE::CalculateDerivatives()
@@ -289,7 +306,7 @@ namespace slae
 	}
 
 	// Вычисление B по формуле B = sqrt((dAz/dy)^2+(dAz/dx))
-	double SLAE::CalculateB(double x, double y, int elementNumber)
+	double SLAE::CalculateB(double x, double y, int elementNumber, double *Bx, double *By)
 	{
 		Element element = grid.elements[elementNumber];
 		CalculateG(elementNumber);
@@ -312,13 +329,32 @@ namespace slae
 			dAx += dphiksi[i](ksi, etta) * qi[i];
 			dAy += dphietta[i](ksi, etta) * qi[i];
 		}
+		*Bx = dAy;
+		*By = -dAx;
 
 		//return sqrt(B2 / S);
 		return sqrt(dAx * dAx + dAy * dAy);
 	}
 
+	// Получение значения B в точке (x,y)
+	double SLAE::CalculateBInPoint(double x, double y, double *Bx, double *By)
+	{
+		int size = grid.elements.size();
+		int numberOfElement = -1;
+		// Пока не прошли все элементы и не нашли элемента, в котором лежит данная точка
+		for (int i = 0; i < size && numberOfElement == -1; i++)
+			if (grid.nodes[grid.elements[i].nodes[0]].x <= x &&
+				x <= grid.nodes[grid.elements[i].nodes[1]].x &&
+				grid.nodes[grid.elements[i].nodes[0]].y <= y &&
+				y <= grid.nodes[grid.elements[i].nodes[2]].y)
+				numberOfElement = i;
+		if (numberOfElement != -1)
+			return CalculateB(x, y, numberOfElement, Bx, By);
+		else return -1;
+	}
+
 	// Построение кубического интерполяционного сплайна
-	double SLAE::Spline(int interval_B_number, double B)
+	double SLAE::SplineInterpolation(int interval_B_number, double B)
 	{
 		double psi1, psi2, psi3, psi4, h, ksi; 
 
@@ -340,7 +376,7 @@ namespace slae
 			tableMu[interval_B_number + 1].second * psi3 +
 			tableDetMu[interval_B_number + 1] * psi4;		
 	}
-
+#pragma endregion
 	// Генерация СЛАУ
 	void SLAE::GenerateSLAE()
 	{
@@ -355,39 +391,6 @@ namespace slae
 		normF = Norm(F);
 	}
 
-	// Вычисление 1ого краевого условия для одного узла
-	void SLAE::CalculateBoundaries1()
-	{
-		int id;
-		int nNodes = grid.ku.size();
-		int matrixSize = A.n;
-		int numberOfNode;
-		bool flag;
-
-		for (int i = 0; i < nNodes; i++)
-		{
-			numberOfNode = grid.ku[i];
-
-			F[numberOfNode] = 0.0;
-			A.di[numberOfNode] = 1.0;
-
-			for (int j = 0; j < matrixSize; j++)
-				if (numberOfNode < j)
-				{
-					flag = false;
-					for (id = A.ig[j]; !flag && id <= A.ig[j + 1] - 1; id++)
-						if (A.jg[id] == numberOfNode) flag = true;
-					if (flag) A.ggu[id - 1] = 0.0;
-				}
-				else
-				{
-					flag = false;
-					for (id = A.ig[numberOfNode]; !flag && id <= A.ig[numberOfNode + 1] - 1; id++)
-						if (A.jg[id] == j) flag = true;
-					if (flag) A.ggl[id - 1] = 0.0;
-				}
-		}
-	}
 
 #pragma region LU_LOS
 	// Вычисление нормы вектора
@@ -569,21 +572,27 @@ namespace slae
 	
 	void SLAE::Solve()
 	{
-		FILE *fo;
-		fopen_s(&fo, "result.txt", "w");
-		//printf("Calculating......([t] = %f)\n", t);
-		// находим новое решение
 		GenerateSLAE();
 		LULOS();
 
+		FILE *fo;
+		fopen_s(&fo, "result.txt", "w");
+		fprintf(fo, "Az:\n");
 		for (int i = 0; i < n; i++)
 			fprintf(fo, "%.14lf\n", u[i]);
-		//fprintf(fo, "%.14lf\t", t);
 		fprintf(fo, "\n\n");
-
-		printf("Vector:");
+		FILE *fp;
+		fopen_s(&fp, "points.txt", "r");
+		int n_;
+		fscanf_s(fp, "%d", &n);
+		double x, y, Bx, By, B;
 		for (int i = 0; i < n; i++)
-			printf("\t\t%.14lf\n", u[i]);
-		printf("\n\n");
+		{
+			fscanf_s(fp, "%lf%lf", &x, &y);
+			B = CalculateBInPoint(x, y, &Bx, &By);
+			fprintf(fo, "X= %.3le  Y= %.3le  Bx= %.4le\tBy= %.4le\t||B||= %.4le\n", x, y, Bx, By, B);
+		}
+		fclose(fp);
+		fclose(fo);
 	}
 }

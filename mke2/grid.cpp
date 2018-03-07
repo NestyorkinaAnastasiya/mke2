@@ -42,10 +42,10 @@ namespace grid
 		int countOfNodes, countOfElements, l;
 		FILE *fNodes, *fElements, *l1, *fp ;
 		
-		fNodes = fopen("rz.dat", "rb");
-		fElements = fopen("nvtr.dat", "rb");
-		fp = fopen("inf2tr.dat", "r");		
-		l1 = fopen("l1.dat", "rb");
+		fopen_s(&fNodes,"rz.dat", "rb");
+		fopen_s(&fElements,"nvtr.dat", "rb");
+		fopen_s(&fp, "inf2tr.dat", "r");		
+		fopen_s(&l1, "l1.dat", "rb");
 
 		/* Функция fseek перемещает указатель позиции в потоке. 
 		Устанавливает внутренний указатель положения в файле, 

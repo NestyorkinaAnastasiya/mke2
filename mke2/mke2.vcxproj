@@ -133,6 +133,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="number_of_test.txt" />
+    <Text Include="points.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="inf2tr.dat" />
