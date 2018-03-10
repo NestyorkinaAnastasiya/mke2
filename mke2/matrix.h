@@ -28,5 +28,6 @@ namespace matrix
 		void CreatePortret(int slaeSize, Grid grid);
 		//Умножение матрицы на вектор
 		void MultiplyAx(const vector <double> a, vector<double>& result);
+		void MultiplyATx(vector<double> a, vector<double>& result);
 	};
 }

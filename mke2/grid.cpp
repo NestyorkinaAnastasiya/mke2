@@ -15,41 +15,36 @@ namespace grid
 	// Описание содержимого файлов
 	/*
 	# inf2tr.dat (текстовый файл):
-		kuzlov - число узлов сетки
-		ktr    - число конечных элементов (прямоугольников)
-		kt1    - число узлов с первыми краевыми условиями
+	kuzlov - число узлов сетки
+	ktr    - число конечных элементов (прямоугольников)
+	kt1    - число узлов с первыми краевыми условиями
 	# rz.dat (двоичный файл):
-		структура i-й записи (i=1..kuzlov):
-			2*double (x,y),	где x,y - (x,y)-координаты i-й вершины
+	структура i-й записи (i=1..kuzlov):
+	2*double (x,y),	где x,y - (x,y)-координаты i-й вершины
 	# nvtr.dat (двоичный файл):
-		структура i-й записи (i=1..ktr): 
-			6*long (i1,i2,i3,i4,0,1), где i1,i2,i3,i4 - глобальные номера 
-			вершин i-го прямоугольника (левый верхний, правый верхний,
-			левый нижний, правый нижний)
+	структура i-й записи (i=1..ktr):
+	6*long (i1,i2,i3,i4,0,1), где i1,i2,i3,i4 - глобальные номера
+	вершин i-го прямоугольника (левый верхний, правый верхний,
+	левый нижний, правый нижний)
 	# nvkat2d.dat (двоичный файл):
-		структура i-й записи (i=1..ktr):
-			1*long (m), где m - номер материала i-го прямоугольника в 
-			соответствии с файлами sreda и mu
+	структура i-й записи (i=1..ktr):
+	1*long (m), где m - номер материала i-го прямоугольника в
+	соответствии с файлами sreda и mu
 	# l1.dat (двоичный файл):
-		структура i-й записи (i=1..kt1):
-			1*long (k), где k - глобальный номер i-й вершины с первым
-			нулевыми краевым условием
+	структура i-й записи (i=1..kt1):
+	1*long (k), где k - глобальный номер i-й вершины с первым
+	нулевыми краевым условием
 	*/
-	
+
 	// Заполнение сетки
 	Grid::Grid()
 	{
-		int countOfNodes, countOfElements, l;
-		FILE *fNodes, *fElements, *l1, *fp ;
-		
-		fopen_s(&fNodes,"rz.dat", "rb");
-		fopen_s(&fElements,"nvtr.dat", "rb");
-		fopen_s(&fp, "inf2tr.dat", "r");		
-		fopen_s(&l1, "l1.dat", "rb");
+		int countOfNodes, countOfElements, countOfBC, l;
+		FILE *fNodes, *fElements, *l1, *fp;
 
-		/* Функция fseek перемещает указатель позиции в потоке. 
-		Устанавливает внутренний указатель положения в файле, 
-		в новую позицию, которая определяются путем добавления 
+		/* Функция fseek перемещает указатель позиции в потоке.
+		Устанавливает внутренний указатель положения в файле,
+		в новую позицию, которая определяются путем добавления
 		смещения к исходному положению.
 
 		int fseek( FILE * filestream, long int offset, int origin );
@@ -57,23 +52,28 @@ namespace grid
 
 		- offset		Количество байт для смещения, относительно некоторого положения указателя.
 
-		- origin		Позиция указателя, относительно которой будет выполняться смещение. 
-						Такая позиция задаётся одной из следующих констант, определённых в
-						заголовочном файле <cstdio>:
+		- origin		Позиция указателя, относительно которой будет выполняться смещение.
+		Такая позиция задаётся одной из следующих констант, определённых в
+		заголовочном файле <cstdio>:
 
 		SEEK_SET	Начало файла
 		SEEK_CUR	Текущее положение файла
 		SEEK_END	Конец файла*/
 
+
+		fopen_s(&fp, "inf2tr.dat", "r");
 		fseek(fp, 56, SEEK_SET);
 		fscanf(fp, "%d", &countOfNodes);
 		fseek(fp, 8, SEEK_CUR);
 		fscanf(fp, "%d", &countOfElements);
+		fseek(fp, 8, SEEK_CUR);
+		fscanf(fp, "%d", &countOfBC);
 		fclose(fp);
-
 		nodes.resize(countOfNodes);
 		elements.resize(countOfElements);
+		ku.resize(countOfBC);
 
+		fopen_s(&fNodes, "rz.dat", "rb");
 		for (int i = 0; i < countOfNodes; i++)
 		{
 			double xy[2];
@@ -81,7 +81,9 @@ namespace grid
 			nodes[i].x = xy[0];
 			nodes[i].y = xy[1];
 		}
+		fclose(fNodes);
 
+		fopen_s(&fElements, "nvtr.dat", "rb");
 		fp = fopen("nvkat2d.dat", "rb");
 		for (int i = 0; i < countOfElements; i++)
 		{
@@ -97,16 +99,22 @@ namespace grid
 			elements[i].numberOfMaterial = material;
 		}
 		fclose(fp);
+		fclose(fElements);
 
 		// Заполнение узлов с краевыми условиями
-		while (fread(&l, sizeof(int), 1, l1) == 1)
+		fopen_s(&l1, "l1.dat", "rb");
+		for (int i = 0; i < countOfBC; i++)
 		{
-			ku.push_back(l - 1);
+			fread(&l, sizeof(int), 1, l1);
+			ku[i] = l - 1;
 		}
+
+		sort(ku.begin(), ku.end());
+		fclose(l1);
 	}
 
 	Grid::~Grid() {}
-	
+
 	// Формирование списка номеров элементов, содержащих глобальный номер б.ф.
 	// равный nodesNumber
 	void Grid::SearchElements(int nodesNumber, vector <int> &elList)

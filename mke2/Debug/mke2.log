@@ -1,7 +1,1 @@
-﻿  slae.cpp
-c:\users\анастасия\source\repos\mke2\mke2\slae.cpp(155): warning C4101: tmpM: неиспользованная локальная переменная
-c:\users\анастасия\source\repos\mke2\mke2\slae.cpp(277): warning C4101: detta: неиспользованная локальная переменная
-c:\users\анастасия\source\repos\mke2\mke2\slae.cpp(277): warning C4101: dksi: неиспользованная локальная переменная
-c:\users\анастасия\source\repos\mke2\mke2\slae.cpp(347): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\анастасия\source\repos\mke2\mke2\slae.cpp(582): warning C4101: n_: неиспользованная локальная переменная
-  mke2.vcxproj -> C:\Users\Анастасия\source\repos\mke2\Debug\mke2.exe
+﻿  mke2.vcxproj -> C:\Users\Анастасия\source\repos\mke2\Debug\mke2.exe

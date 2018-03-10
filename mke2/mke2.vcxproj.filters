@@ -64,6 +64,9 @@
     <Text Include="points.txt">
       <Filter>Файлы ресурсов</Filter>
     </Text>
+    <Text Include="result.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="inf2tr.dat">

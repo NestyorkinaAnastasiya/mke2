@@ -17,11 +17,11 @@ namespace slae
 		// Максимальное количество итераций в решателе
 		int maxiter = 10000;
 		// Точность решения СЛАУ
-		const double eps = 1e-10;
+		const double eps = 1e-14;
 
 		// Значение мю в вакууме(4 * пи * 10 ^ -7)
-		double mu0 = 4 * M_PI * 0.0000001;
-		double Jz = 1e7;
+		double mu0 = 4 * M_PI * 1e-8;
+		double Jz = 1e8;
 		bool liner = true;
 		vector<pair<double, double>> tableMu;
 		vector<double> tableDetMu;
@@ -65,6 +65,9 @@ namespace slae
 		double CalculateMu(double x, double y, int elementNumber);
 		void CalculateDerivatives();
 		double CalculateB(double x, double y, int elementNumber, double *Bx, double *By);
+		
+		double CalculateAzInPoint(double x, double y);
+		double CalculateAz(double x, double y, int elementNumber);
 		double CalculateBInPoint(double x, double y, double *Bx, double *By);
 		double SplineInterpolation(int interval_B_number, double B);
 
@@ -103,6 +106,36 @@ namespace slae
 		SLAE();
 
 		void Solve();
+
+		void LFx(const vector<double>& b, vector<double>& result);
+
+		void LTFx(const vector<double>& b, vector<double>& result);
+
+		void UFx(const vector<double>& b, vector<double>& result);
+
+		void UTFx(const vector<double>& b, vector<double>& result);
+
+		double IterMSG(const vector<double>& Az);
+
+		void MultiplyUx(const vector<double>& a, vector<double>& result);
+
+		void LU_MSG();
+
+		void MSG();
+
+		void CulcVect(vector<double>& res, const vector<double>& v1, double var, vector<double>& v2);
+
+		void Equal(vector<double>& vo, vector<double>& vi);
+
+		double Residual();
+
+		void LLt_factorization();
+
+		void ReverseLLt(vector<double>& res, vector<double>& y);
+
+		void DirectlyLLt(vector<double>& res, vector<double>& f);
+
+		void LLt_MSG();
 
 		~SLAE() {};
 	};

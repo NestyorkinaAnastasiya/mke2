@@ -102,5 +102,28 @@ namespace matrix
 			}
 		}
 	}
+	void Matrix::MultiplyATx(vector <double> a, vector <double> &result)
+	{
+		int i, j, l, ik, iend, k;
+		for (i = 0; i < n; i++)
+		{
+			//начало i-ой строки(столбца)
+			l = ig[i];
+			//начало (i+1)-ой строки(столбца)
+			iend = ig[i + 1];
+			//количество элементов в i строке(столбце)
+			ik = iend - l;
+
+			result[i] = di[i] * a[i];
+
+			//проходим по всем элементам i строки (столбца)
+			for (k = 0; k < ik; k++, l++)
+			{
+				j = jg[l];
+				result[i] += ggu[l] * a[j];
+				result[j] += ggl[l] * a[i];
+			}
+		}
+	}
 }
 
