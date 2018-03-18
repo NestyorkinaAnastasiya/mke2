@@ -145,6 +145,8 @@
     <None Include="nvkat2d.dat" />
     <None Include="nvr4.dat" />
     <None Include="nvtr.dat" />
+    <None Include="RESB" />
+    <None Include="result" />
     <None Include="rz.dat" />
     <None Include="toku" />
   </ItemGroup>

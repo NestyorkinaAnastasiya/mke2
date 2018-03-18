@@ -19,7 +19,7 @@ namespace grid
 	ktr    - число конечных элементов (прямоугольников)
 	kt1    - число узлов с первыми краевыми условиями
 	# rz.dat (двоичный файл):
-	структура i-й записи (i=1..kuzlov):
+	структура i-й записиd (i=1..kuzlov):
 	2*double (x,y),	где x,y - (x,y)-координаты i-й вершины
 	# nvtr.dat (двоичный файл):
 	структура i-й записи (i=1..ktr):
@@ -62,11 +62,15 @@ namespace grid
 
 
 		fopen_s(&fp, "inf2tr.dat", "r");
+		char c = ' ';
 		fseek(fp, 56, SEEK_SET);
 		fscanf(fp, "%d", &countOfNodes);
-		fseek(fp, 8, SEEK_CUR);
+		while (c != '=')
+			fscanf(fp, "%c", &c);
 		fscanf(fp, "%d", &countOfElements);
-		fseek(fp, 8, SEEK_CUR);
+		c = ' ';
+		while (c != '=')
+			fscanf(fp, "%c", &c);
 		fscanf(fp, "%d", &countOfBC);
 		fclose(fp);
 		nodes.resize(countOfNodes);
@@ -85,11 +89,16 @@ namespace grid
 
 		fopen_s(&fElements, "nvtr.dat", "rb");
 		fp = fopen("nvkat2d.dat", "rb");
+		double g = 0;
 		for (int i = 0; i < countOfElements; i++)
 		{
 			int nodes[6], material;
 			fread(nodes, sizeof(int), 6, fElements);
 			fread(&material, sizeof(int), 1, fp);
+
+
+			if (material == 3 || material == 4)
+				g++;
 
 			// Нумерация в файле начинается с 1
 			for (int j = 0; j < 4; j++)

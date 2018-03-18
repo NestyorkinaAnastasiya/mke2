@@ -1,1 +1,12 @@
-﻿  mke2.vcxproj -> C:\Users\Анастасия\source\repos\mke2\Debug\mke2.exe
+﻿  slae.cpp
+c:\users\анастасия\source\repos\mke2\mke2\slae.cpp(142): warning C4101: s: неиспользованная локальная переменная
+c:\users\анастасия\source\repos\mke2\mke2\slae.cpp(249): warning C4101: id: неиспользованная локальная переменная
+c:\users\анастасия\source\repos\mke2\mke2\slae.cpp(253): warning C4101: flag: неиспользованная локальная переменная
+c:\users\анастасия\source\repos\mke2\mke2\slae.cpp(366): warning C4101: detta: неиспользованная локальная переменная
+c:\users\анастасия\source\repos\mke2\mke2\slae.cpp(366): warning C4101: dksi: неиспользованная локальная переменная
+c:\users\анастасия\source\repos\mke2\mke2\slae.cpp(416): warning C4101: detta: неиспользованная локальная переменная
+c:\users\анастасия\source\repos\mke2\mke2\slae.cpp(416): warning C4101: dksi: неиспользованная локальная переменная
+c:\users\анастасия\source\repos\mke2\mke2\slae.cpp(484): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\анастасия\source\repos\mke2\mke2\slae.cpp(565): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\анастасия\source\repos\mke2\mke2\slae.cpp(664): warning C4101: sum: неиспользованная локальная переменная
+  mke2.vcxproj -> C:\Users\Анастасия\source\repos\mke2\Debug\mke2.exe

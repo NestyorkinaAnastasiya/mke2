@@ -1,4 +1,5 @@
-﻿/*slae.cpp*/
+﻿#define _CRT_SECURE_NO_WARNINGS 
+/*slae.cpp*/
 #include "slae.h"
 
 namespace slae
@@ -18,7 +19,7 @@ namespace slae
 		F.resize(n);
 		u.resize(n);
 		for (int i = 0; i < n; i++)
-			u[i] = 10;
+			u[i] = 0;
 		u_n.resize(n);
 		r.resize(n);
 		z.resize(n);
@@ -52,12 +53,20 @@ namespace slae
 	{
 		Element element = grid.elements[elementNumber];
 		double g1, g2, ksi, etta, x_, y_, lambda,
-			x1 = grid.nodes[element.nodes[0]].x, x3 = grid.nodes[element.nodes[1]].x,
-			y1 = grid.nodes[element.nodes[0]].y, y3 = grid.nodes[element.nodes[2]].y,
-			hx = x3 - x1, hy = y3 - y1,
-			hx2 = hx * hx, hy2 = hy * hy,
-			jacobian = hx * hy / 4.0;
-
+			x1 = grid.nodes[element.nodes[0]].x,
+			x3 = grid.nodes[element.nodes[1]].x,
+			y1 = grid.nodes[element.nodes[0]].y,
+			y3 = grid.nodes[element.nodes[2]].y,
+			hx = x3 - x1,
+			hy = y3 - y1,
+			hx2 = hx * hx,
+			hy2 = hy * hy,
+			jacobian = hx * hy / 4.0,
+			lambda_[4];
+		/* lambda_[0] = 1 / CalculateMu(x1, y1, elementNumber);
+		 lambda_[1] = 1 / CalculateMu(x3, y1, elementNumber);
+		 lambda_[2] = 1 / CalculateMu(x1, y3, elementNumber);
+		 lambda_[3] = 1 / CalculateMu(x3, y3, elementNumber);*/
 		for (int i = 0; i < 4; i++)
 		{
 			for (int j = i; j < 4; j++)
@@ -65,14 +74,17 @@ namespace slae
 				g1 = 0; g2 = 0;
 				for (int k = 0; k < 25; k++)
 				{
-					ksi = 0.5 + 0.5 * gaussPoints[0][k]; etta = 0.5 + 0.5 * gaussPoints[1][k];
-					x_ = x1 + ksi * hx; y_ = y1 + etta * hy;
+					ksi = 0.5 + 0.5 * gaussPoints[0][k];
+					etta = 0.5 + 0.5 * gaussPoints[1][k];
+					x_ = x1 + ksi * hx;
+					y_ = y1 + etta * hy;
 
 					// Номер материала соответствует железу
 					if (element.numberOfMaterial == 2)
 					{
 						if (!liner)
 							lambda = 1 / CalculateMu(x_, y_, elementNumber);
+							//lambda = lambda_[j];
 						else lambda = 1 / (1000 * mu0);
 					}
 					else // В остальных случаях нет зависмости от mu
@@ -89,18 +101,49 @@ namespace slae
 		for (int i = 1; i < 4; i++)
 			for (int j = 0; j < i; j++)
 				G[i][j] = G[j][i];
+		/*double Gx11 = 1 / hx, Gx12 = -1 / hx, Gx21 = -1 / hx, Gx22 = 1 / hx,
+			Gy11 = 1 / hy, Gy12 = -1 / hy, Gy21 = -1 / hy, Gy22 = 1 / hy,
+			Mx11 = hx / 3, Mx12 = hx / 6, Mx21 = hx / 6, Mx22 = hx / 3,
+			My11 = hy / 3, My12 = hy / 6, My21 = hy / 6, My22 = hy / 3;
+			if (element.numberOfMaterial == 2)
+		{
+			//if (!liner)
+				//lambda = 1 / CalculateMu(x_, y_, elementNumber);
+			/*else //lambda = 1 / (1000 * mu0);
+		}
+		else // В остальных случаях нет зависмости от mu
+		{
+			lambda = 1.0 / mu0;
+		}
+		G[0][0] = lambda*(Gx11 * My11 + Mx11 * Gy11);
+		G[0][1] = lambda*(Gx12 * My11 + Mx12 * Gy11);
+		G[0][2] = lambda*(Gx11 * My12 + Mx11 * Gy12);
+		G[0][3] = lambda*(Gx12 * My12 + Mx12 * Gy12);
 
+		G[1][1] = lambda*(Gx22 * My11 + Mx22 * Gy11);
+		G[1][2] = lambda*(Gx21 * My12 + Mx21 * Gy12);
+		G[1][3] = lambda*(Gx22 * My12 + Mx22 * Gy12);
+
+		G[2][2] = lambda*(Gx11 * My22 + Mx11 * Gy22);
+		G[2][3] = lambda*(Gx12 * My22 + Mx12 * Gy22);
+
+		G[3][3] = lambda*(Gx22 * My22 + Mx22 * Gy22);
+
+		// матрица симметричная, заполняем нижний треугольник
+		for (int i = 1; i < 4; i++)
+			for (int j = 0; j < i; j++)
+				G[i][j] = G[j][i];*/
 	}
 
 	// Сборка локальных правых частей
 	void SLAE::CalculateLocalF(int elementNumber)
 	{
 		Element element = grid.elements[elementNumber];
-		double ksi, etta, x_, y_,
+		double ksi, etta, x_, y_, s,
 			x1 = grid.nodes[element.nodes[0]].x, x3 = grid.nodes[element.nodes[1]].x,
 			y1 = grid.nodes[element.nodes[0]].y, y3 = grid.nodes[element.nodes[2]].y,
 			hx = x3 - x1, hy = y3 - y1,
-			jacobian = hx * hy / 4.0;
+			jacobian = hx * hy / 4;
 
 		// интегрирование(Гаусс 5)
 		for (int i = 0; i < 4; i++)
@@ -110,17 +153,20 @@ namespace slae
 			{
 				for (int k = 0; k < 25; k++)
 				{
-					ksi = 0.5 + 0.5 * gaussPoints[0][k]; etta = 0.5 + 0.5 * gaussPoints[1][k];
-					x_ = x1 + ksi * hx; y_ = y1 + etta * hy;
+					ksi = 0.5 + 0.5 * gaussPoints[0][k];
+					etta = 0.5 + 0.5 * gaussPoints[1][k];
+					x_ = x1 + ksi * hx;
+					y_ = y1 + etta * hy;
 					if (element.numberOfMaterial == 3)
-						locF[i] += Jz * gaussWeights[k] * phi[i](ksi, etta);
+						locF[i] += 4 * Jz* gaussWeights[k] * phi[i](ksi, etta);
 					else if (element.numberOfMaterial == 4)
-						locF[i] -= Jz * gaussWeights[k] * phi[i](ksi, etta);
+						locF[i] -= 4 * Jz* gaussWeights[k] * phi[i](ksi, etta);
 				}
 				locF[i] *= jacobian;
 			}
-		}
-		/*double fi;
+		}/**/
+		/*
+		double fi;
 		Element element = grid.elements[elementNumber];
 		double x1 = grid.nodes[element.nodes[0]].x, x3 = grid.nodes[element.nodes[1]].x;
 		double y1 = grid.nodes[element.nodes[0]].y, y3 = grid.nodes[element.nodes[2]].y;
@@ -130,12 +176,12 @@ namespace slae
 
 		double f1, f2, f3, f4;
 		if (element.numberOfMaterial == 3)
-			f1 = f2 = f3 = f4 = Jz;
+		f1 = f2 = f3 = f4 = Jz * 4;
 		else
 		{
-			if (element.numberOfMaterial == 4)
-				f1 = f2 = f3 = f4 = -Jz;
-			else f1 = f2 = f3 = f4 = 0;
+		if (element.numberOfMaterial == 4)
+		f1 = f2 = f3 = f4 = -Jz*4;
+		else f1 = f2 = f3 = f4 = 0;
 		}
 
 		locF[0] = hy * hx*(4 * f1 + 2 * f2 + 2 * f3 + f4) / 36;
@@ -191,7 +237,6 @@ namespace slae
 				kj = element.nodes[j];
 				// добавка в глобальную матрицу А
 				AddElementToGlobalMatrix(A, ki, kj, G[i][j]);
-
 			}
 			// добавка в глобальную правую часть
 			F[ki] = locF[i];
@@ -212,24 +257,7 @@ namespace slae
 			numberOfNode = grid.ku[i];
 
 			F[numberOfNode] = 0.0;
-			A.di[numberOfNode] = 1e307;
-			//u[numberOfNode] = 0;
-
-			/*	for (int j = 0; j < matrixSize; j++)
-			if (numberOfNode < j)
-			{
-			flag = false;
-			for (id = A.ig[j]; !flag && id <= A.ig[j + 1] - 1; id++)
-			if (A.jg[id] == numberOfNode) flag = true;
-			if (flag) A.ggu[id - 1] = 0.0;
-			}
-			else
-			{
-			flag = false;
-			for (id = A.ig[numberOfNode]; !flag && id <= A.ig[numberOfNode + 1] - 1; id++)
-			if (A.jg[id] == j) flag = true;
-			if (flag) A.ggl[id - 1] = 0.0;
-			}*/
+			A.di[numberOfNode] = 1e37;
 		}
 	}
 #pragma endregion
@@ -349,8 +377,10 @@ namespace slae
 		else
 			for (int i = 0; i < 4; i++)
 				qi[i] = u_n[element.nodes[i]];
+
 		dAx = 0;
 		dAy = 0;
+
 		for (int i = 0; i < 4; i++)
 		{
 			dAx += dphiksi[i](ksi, etta) * qi[i] / hx;
@@ -359,7 +389,6 @@ namespace slae
 		*Bx = dAy;
 		*By = -dAx;
 
-		//return sqrt(B2 / S);
 		return sqrt(dAx * dAx + dAy * dAy);
 	}
 
@@ -451,6 +480,10 @@ namespace slae
 	// Генерация СЛАУ
 	void SLAE::GenerateSLAE()
 	{
+		for (int i = 0; i < n; i++)
+			A.di[i] = F[i] = 0;
+		for (int i = 0; i < A.ggl.size(); i++)
+			A.ggl[i] = A.ggu[i] = 0;
 		// Высчитывание локальных матриц(векторов) и добавление в глобальные
 		for (int i = 0; i < grid.elements.size(); i++)
 			CalculateLocals(i);
@@ -458,27 +491,93 @@ namespace slae
 		CalculateBoundaries1();
 
 		normF = Norm(F);
-		/*F.resize(3);
-		F = { 9,3,5 };
-		A.di.resize(3);
-		A.di = { 1,1,1 };
-		A.n = 3;
-		n = 3;
-		A.ig.resize(4);
-		A.ig = { 0,0,1,2 };
-		A.jg.resize(2);
-		A.jg = {0,0};
-		A.ggl.resize(2);
-		A.ggu.resize(2);
-		A.ggl = A.ggu = { 2,3 };
-		u.resize(3);
-		r.resize(3);
-		z.resize(3);*/
-
 	}
 
+	double SLAE::StopIteration()
+	{
+		vector <double> b(n), z(n);
 
-#pragma region LU_LOS
+		//генерируем СЛАУ с текущим решением
+		GenerateSLAE();
+		//умножаем матрицу на текущее решение
+		A.MultiplyAx(u, z);
+		//и находим абсолютную невязку
+		for (int i = 0; i < n; i++)
+			b[i] = z[i] - F[i];
+
+		return Norm(b) / Norm(F);
+	}
+
+	void SLAE::Solve()
+	{
+		int k;
+		double exit_condition;
+		if (liner)
+		{
+			GenerateSLAE();
+			LU_MSG();
+		}
+		else
+		{
+			liner = true;
+			GenerateSLAE();
+			LU_MSG();
+			liner = false;
+			//цикл по нелинейности
+			for (k = 1; k < 50; k++)
+			{
+				//сохраняем предыдущее решение по нелинейности
+				u_n = u;
+				//находим новое решение
+				GenerateSLAE();
+				vector<double>r(n);
+				A.Sum(r);
+
+				LU_MSG();
+				//проверяем условие останова 
+				//+ генерация СЛАУ с текущим решением
+				exit_condition = StopIteration();
+				printf("%e\r", exit_condition);
+				//если оно не выполнено, то, используя параметр
+				//релаксации, находим новое решение
+				if (exit_condition > eps)
+				{
+					for (int i = 0; i < n; i++)
+						u[i] = w * u[i] + (1 - w)*u_n[i];
+				}
+				//иначе выходим из цикла
+				else break;
+
+			}
+		}
+
+		FILE *fo;
+		fopen_s(&fo, "result.txt", "w");
+		fprintf(fo, "Az:\n");
+		for (int i = 0; i < n; i++)
+			fprintf(fo, "%.14lf\n", u[i]);
+		fprintf(fo, "\n\n");
+		FILE *fp;
+		fopen_s(&fp, "points.txt", "r");
+		int n_;
+		fscanf_s(fp, "%d", &n_);
+		double x, y, Bx, By, B, Az;
+		for (int i = 0; i < n_; i++)
+		{
+			fscanf_s(fp, "%lf%lf", &x, &y);
+			B = CalculateBInPoint(x, y, &Bx, &By);
+			Az = CalculateAzInPoint(x, y);
+			fprintf(fo, "X= %.3le  Y= %.3le  Bx= %.4le\tBy= %.4le\tAz =  %le\t||B||= %.4le\n", x, y, Bx, By, Az, B);
+		}
+		fclose(fp);
+		fclose(fo);
+		fo = fopen("v2.dat", "wb");
+		for (int i = 0; i < u.size(); i++)
+			fwrite(&u[i], sizeof(double), 1, fo);
+		fclose(fo);
+	}
+
+#pragma region solver
 	// Вычисление нормы вектора
 	double SLAE::Norm(const vector<double> &x)
 	{
@@ -546,142 +645,7 @@ namespace slae
 		}
 	}
 
-	void SLAE::LYF(const vector <double> &C, vector <double> &yl)
-	{
-		int i, i0, iend; // i0-адрес начала строки, iend-адрес конца строки
-		double sum;
-		for (i = 0; i < n; i++)
-		{
-			i0 = A.ig[i]; iend = A.ig[i + 1];
 
-			yl[i] = C[i];
-
-			for (i0, sum = 0; i0 < iend; i0++)
-				yl[i] -= yl[A.jg[i0]] * L[i0];
-			yl[i] /= D[i];
-		}
-	}
-
-	void SLAE::UXY(const vector <double> &C, vector <double> &yu)
-	{
-		int i, i0, iend;
-
-		for (i = 0; i < n; i++)
-			yu[i] = 0.0;
-
-		for (i = n - 1; i >= 0; i--)// проход по столбцам с конца
-		{
-			yu[i] += C[i];
-
-			i0 = A.ig[i]; iend = A.ig[i + 1]; iend--;
-
-			for (; iend >= i0; iend--)// идём по столбцу с конца
-				yu[A.jg[iend]] -= yu[i] * U[iend];
-		}
-	}
-
-	double SLAE::Rel_Discrepancy()
-	{
-		double dis1, dis2;
-		dis1 = Scalar(r, r);
-		dis2 = Scalar(F, F);
-		double dis = dis1 / dis2;
-		return sqrt(dis);
-	}
-
-	void SLAE::LULOS()
-	{
-		double a, b, pp, dis, rr;
-		int i, k;
-		vector <double> Ax(n), C(n), p(n);
-
-		LU();
-		// Ax0
-		A.MultiplyAx(u, Ax);
-		// f-Ax0
-		for (i = 0; i < n; i++)
-			r[i] = F[i] - Ax[i];
-
-		// r0=L^(-1)(f-Ax0)
-		LYF(r, r);
-
-		// z0=U^(-1)r0->r0=Uz0
-		UXY(r, z);
-
-		// p0=L^(-1)Az0
-		A.MultiplyAx(z, Ax);//Az0
-		LYF(Ax, p);
-
-		rr = Scalar(r, r);
-		dis = Scalar(r, r) / rr;
-		dis = sqrt(dis);
-		k = 0;
-
-		for (k = 1; dis > eps && k <= 10000; k++)
-		{
-			// Аk
-			pp = Scalar(p, p);
-			a = Scalar(p, r) / pp;
-
-			// Xk, Rk
-			for (i = 0; i < n; i++)
-			{
-				u[i] = u[i] + a * z[i];
-				r[i] = r[i] - a * p[i];
-			}
-
-			// UY=rk->Y=U^(-1)rk
-			UXY(r, C);
-			// AU^(-1)rk=Ax
-			A.MultiplyAx(C, Ax);
-			// L^(-1)AU^(-1)rk=Y2->L^(-1)B=Y2->LY2=B->Y2=L^(-1)AU^(-1)rk
-			LYF(Ax, Ax);
-
-			// bk
-			b = -Scalar(p, Ax) / pp;
-
-			// zk=U^(-1)rk+bkz[k-1]
-			// pk
-			for (i = 0; i < n; i++)
-			{
-				z[i] = C[i] + b * z[i];
-				p[i] = Ax[i] + b * p[i];
-			}
-			dis = Scalar(r, r) / rr;
-			dis = sqrt(dis);
-		}
-
-		dis = Rel_Discrepancy();
-	}
-#pragma endregion
-
-
-	void SLAE::Solve()
-	{
-		GenerateSLAE();
-		LU_MSG();
-
-		FILE *fo;
-		fopen_s(&fo, "result.txt", "w");
-		fprintf(fo, "Az:\n");
-		for (int i = 0; i < n; i++)
-			fprintf(fo, "%.14lf\n", u[i]);
-		fprintf(fo, "\n\n");
-		FILE *fp;
-		fopen_s(&fp, "points.txt", "r");
-		int n_;
-		fscanf_s(fp, "%d", &n);
-		double x, y, Bx, By, B, Az;
-		for (int i = 0; i < n; i++)
-		{
-			fscanf_s(fp, "%lf%lf", &x, &y);
-			B = CalculateBInPoint(x, y, &Bx, &By);
-			Az = CalculateAzInPoint(x, y);
-			fprintf(fo, "X= %.3le  Y= %.3le  Bx= %.4le\tBy= %.4le\t||B||= %.4le\tAz =  %lf\n", x, y, Bx, By, B, Az);
-		}
-		fclose(fp);
-		fclose(fo);
-	}
 	void SLAE::LFx(const vector<double> &b, vector <double> &result)
 	{
 		int i, k;
@@ -809,10 +773,13 @@ namespace slae
 		double res;
 		vector <double> Az;
 		Az.resize(n);
-		
+
 		for (int i = 0; i < n; i++)
 			u[i] = 0;
-
+		/*FILE *fn = fopen("v2.dat", "rb");
+		for (int i = 0; i < u.size(); i++)
+		fread(&u[i], sizeof(double), 1, fn);
+		fclose(fn);*/
 		LU();
 
 		A.MultiplyAx(u, r);
@@ -834,7 +801,7 @@ namespace slae
 		MultiplyUx(u, u);
 
 		res = Norm(r) / normF;
-		for (iter = 0; res >= eps && iter < 10000; iter++)
+		for (iter = 0; res >= eps && iter < maxiter; iter++)
 		{
 			UFx(z, Az);
 			A.MultiplyAx(Az, Az);
@@ -846,178 +813,14 @@ namespace slae
 			res = IterMSG(Az);
 		}
 		UFx(u, u);
-		printf("res = %e\t iter = %d", res, iter);
-		getchar();
+		
+		//getchar();
 
 		/*for (int i = 0; i < n; i++)
-			fprintf(fo, "%.14lf\n", x[i]);
+		fprintf(fo, "%.14lf\n", x[i]);
 		fprintf(fo, "%E\t", res);
 		fprintf(fo, "%d\t", iter);*/
 	}
-	void SLAE::MSG()
-	{
-		int iter;
-		double res;
-		vector <double> Az;
-		Az.resize(n);
-		for (int i = 0; i < n; i++)
-			u[i] = 1;
-
-		A.MultiplyAx(u, r);
-		A.MultiplyATx(r, r);
-
-		A.MultiplyATx(F, z);
-		normF = Norm(z);
-
-		for (int i = 0; i < n; i++)
-			r[i] = z[i] - r[i];
-
-		z = r;
-		res = Norm(r) / normF;
-
-		for (iter = 0; res >= eps && iter < maxiter; iter++)
-		{
-			A.MultiplyAx(z, Az);
-			A.MultiplyATx(Az, Az);
-
-			res = IterMSG(Az);
-		}
-
-		/*for (int i = 0; i < n; i++)
-			fprintf(fo, "%.14lf\n", x[i]);
-		fprintf(fo, "%E\t", res);
-		fprintf(fo, "%d\t", iter);*/
-	}
-
-#pragma region MSG Sim
-
-	//вычисление значения вектора
-	void SLAE::CulcVect(vector<double>& res, const vector<double>&v1, double var, vector<double>& v2)
-	{
-		for (int i = 0; i < n; i++)
-			res[i] = v1[i] + var * v2[i];
-	}
-
-	//равенство векторов
-	void SLAE::Equal(vector<double>& vo, vector<double>& vi)
-	{
-		// vo = vi;
-		for (int i = 0; i < n; i++)
-			vo[i] = vi[i];
-	}
-
-	//невязка
-	double SLAE::Residual()
-	{
-		double resid = 0.;
-		resid = Norm(r) / Norm(F);
-		return resid;
-	}
-
-	//LL^t факторизация
-	void SLAE::LLt_factorization()
-	{
-		double sum = 0., sum2 = 0.;
-		L.resize(A.ggl.size());
-		//U.resize(A.ggu.size());
-		D.resize(A.di.size());
-
-		for (int i = 0; i < n; i++)
-		{
-			int i0 = A.ig[i];      //индекс первого элемента строки
-			int i1 = A.ig[i + 1];  //индекс первого элемента следующей строки
-			sum2 = 0.;
-			for (int p = i0; p < i1; p++)
-			{
-				sum = 0.;
-				int j = A.jg[p];
-				int iline = A.ig[i], jline = A.ig[j];
-				int imax = A.ig[i + 1], jmax = A.ig[j + 1];
-				for (; iline < imax && jline < jmax;)
-				{
-					int ki = A.jg[iline], kj = A.jg[jline];
-					if (ki < kj) iline++;
-					else
-						if (kj < ki) jline++;
-						else
-						{
-							sum += L[iline] * L[jline];
-							iline++; jline++;
-						}
-				}
-				L[p] = (A.ggl[p] - sum) / D[j];
-				sum2 += L[p] * L[p];
-			}
-			D[i] = sqrt(A.di[i] - sum2);
-		}
-	}
-
-	//обратный метод нахождения x из L^t * x = y
-	void SLAE::ReverseLLt(vector<double>& res, vector<double>& y)
-	{
-		for (int i = n - 1; i >= 0; i--)
-		{
-			res[i] /= D[i];
-			int p = A.ig[i], i1 = A.ig[i + 1];
-			for (; p < i1; p++)
-				res[A.jg[p]] -= L[p] * res[i];
-		}
-	}
-
-	//прямой метод нахождения y из L * y = f
-	void SLAE::DirectlyLLt(vector<double>& res, vector<double>& f)
-	{
-		double sum;
-		for (int i = 0; i < n; i++)//проход по всем строкам
-		{
-			sum = 0.;
-			int p = A.ig[i], i1 = A.ig[i + 1];
-			for (; p < i1; p++)
-				//суммирование произведения элементов l(ij)*y(i)
-				sum += L[p] * res[A.jg[p]];
-			res[i] = (f[i] - sum) / D[i];
-		}
-	}
-
-	void SLAE::LLt_MSG()
-	{
-		double alpha, betta, a, b;
-		vector<double>Av(n), q(n);
-		LLt_factorization();//LL^t факторизация
-		A.MultiplyAx(u, Av);
-		for (int i = 0; i < n; i++)
-			r[i] = F[i] - Av[i];
-		Equal(z, r);
-		DirectlyLLt(z, z);
-		ReverseLLt(z, z);
-		double residual = Residual();
-		int k = 0;
-		//printf("Количество итераций: %i Невязка: %.15e\r", k, residual);
-		for (k = 1; k <= maxiter && residual >= eps; k++)
-		{
-			A.MultiplyAx(Av, z);
-			//ak
-			DirectlyLLt(q, r);
-			ReverseLLt(q, q);
-			a = Scalar(q, r);
-			b = Scalar(Av, z);
-			alpha = a / b;
-			//xk = x[k-1] + ak * z[k-1]
-			CulcVect(u, u, alpha, z);
-			//rk = r[k-1] - ak * Av[k-1]
-			CulcVect(r, r, -alpha, Av);
-			residual = Residual();
-			//bk
-			DirectlyLLt(q, r);
-			ReverseLLt(q, q);
-			b = Scalar(q, r);
-			betta = b / a;
-			//zk = r[k] + bk * z[k-1]
-			CulcVect(z, q, betta, z);
-			//printf("Количество итераций: %i Невязка: %.15e\r", k, residual);
-		}
-	}
-
 #pragma endregion
 
 }

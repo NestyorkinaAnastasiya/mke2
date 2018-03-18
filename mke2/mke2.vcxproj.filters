@@ -99,5 +99,11 @@
     <None Include="toku">
       <Filter>Файлы ресурсов</Filter>
     </None>
+    <None Include="RESB">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
+    <None Include="result">
+      <Filter>Файлы ресурсов</Filter>
+    </None>
   </ItemGroup>
 </Project>

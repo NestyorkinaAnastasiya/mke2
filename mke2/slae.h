@@ -1,6 +1,7 @@
 /*slae.h*/
 #pragma once
 #include "tests.h"
+#define _CRT_SECURE_NO_WARNINGS 
 #define _USE_MATH_DEFINES
 #include <math.h>
 using namespace matrix;
@@ -17,12 +18,12 @@ namespace slae
 		// Максимальное количество итераций в решателе
 		int maxiter = 10000;
 		// Точность решения СЛАУ
-		const double eps = 1e-14;
+		const double eps = 1e-10;
 
 		// Значение мю в вакууме(4 * пи * 10 ^ -7)
-		double mu0 = 4 * M_PI * 1e-8;
-		double Jz = 1e8;
-		bool liner = true;
+		double mu0 = 4 * M_PI * 1e-7;
+		double Jz = 10e6;
+		bool liner = false;
 		vector<pair<double, double>> tableMu;
 		vector<double> tableDetMu;
 
@@ -50,6 +51,7 @@ namespace slae
 		vector <double> u;
 		// Норма вектора правой части
 		double normF;
+		double w = 1;
 
 		// Сборка локальных матриц жёсткости
 		void CalculateG(int elementNumber);
@@ -65,7 +67,7 @@ namespace slae
 		double CalculateMu(double x, double y, int elementNumber);
 		void CalculateDerivatives();
 		double CalculateB(double x, double y, int elementNumber, double *Bx, double *By);
-		
+
 		double CalculateAzInPoint(double x, double y);
 		double CalculateAz(double x, double y, int elementNumber);
 		double CalculateBInPoint(double x, double y, double *Bx, double *By);
@@ -93,17 +95,14 @@ namespace slae
 
 		// Генерация СЛАУ на i-ой итерации по времени
 		void GenerateSLAE();
+		double StopIteration();
 		// LU-факторизация
 		void LU();
-		// Вспомогательные функции для решателя
-		void LYF(const vector<double>& C, vector<double>& yl);
-		void UXY(const vector<double>& C, vector<double>& yu);
-		double Rel_Discrepancy();
-		// Решатель ЛОС с LU-факторизацией
-		void LULOS();
 
 	public:
 		SLAE();
+
+		void calculate_M(int elementNumber);
 
 		void Solve();
 
